@@ -1,0 +1,8 @@
+# Ignore the heavy packages
+node_modules/
+
+# NEVER UPLOAD PASSWORDS
+.env
+
+# Ignore system junk
+.DS_Store

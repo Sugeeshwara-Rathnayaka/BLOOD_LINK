@@ -1,0 +1,42 @@
+name: Blood-Link Backend CI
+
+# 1. TRIGGER: Run this every time code is pushed to 'main'
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest 
+
+    # 2. CONTEXT: Tell GitHub where the code actually lives
+    defaults:
+      run:
+        working-directory: ./backend 
+
+    steps:
+    # Step A: Download your code into the GitHub virtual machine
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+
+    # Step B: Install modern Node.js
+    - name: ⚙️ Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: './backend/package-lock.json'
+
+    # Step C: Install dependencies strictly using package-lock.json
+    - name: 📦 Install Dependencies
+      run: npm ci
+
+    # Step D: Run the Code Police
+    - name: 🧹 Run Linter
+      run: npm run lint
+
+    # Step E: Run the automated tests
+    - name: 🧪 Run Tests
+      run: npm run test
