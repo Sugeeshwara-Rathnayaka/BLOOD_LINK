@@ -11,6 +11,7 @@ import DonorRoutes from "./modules/donor/donor.routes.js"; // Import the Donor r
 import RequesterRoutes from "./modules/requester/requester.routes.js"; // Import the Requester routes
 import OrganizationRoutes from "./modules/organization/organization.routes.js"; // Import the Organization routes
 import CampaignRoutes from "./modules/campaigns/campaign.routes.js"; // Import the Campaign routes
+import inventoryRoutes from "./modules/inventory/inventory.routes.js"; // Import the Inventory routes
 
 import { errorMiddleware } from "./common/middleware/globalError.middleware.js"; // Import the custom error handling middleware
 
@@ -24,13 +25,16 @@ app.use(express.json()); // Middleware to parse JSON bodies
 app.get("/", (req, res) => res.send("Server is Live!")); // Define a route for the root URL
 
 app.use("/api/v1/auth", authRoutes); // Use the authentication routes for any requests to /api/v1/auth
+
 app.use("/api/v1/superadmin", SuperAdminRoutes); // Use the SuperAdmin routes for any requests to /api/v1/superadmin
 app.use("/api/v1/bloodbankadmin", BloodBankAdminRoutes); // Use the BloodBankAdmin routes for any requests to /api/v1/bloodbankadmin
 app.use("/api/v1/hospital", HospitalRoutes); // Use the Hospital routes for any requests to /api/v1/hospital
 app.use("/api/v1/donor", DonorRoutes); // Use the Donor routes for any requests to /api/v1/donor
 app.use("/api/v1/requester", RequesterRoutes); // Use the Requester routes for any requests to /api/v1/requester
 app.use("/api/v1/organization", OrganizationRoutes); // Use the Organization routes for any requests to /api/v1/organization
+
 app.use("/api/v1/campaigns", CampaignRoutes); // Use the Campaign routes for any requests to /api/v1/campaigns
+app.use("/api/v1/inventory", inventoryRoutes); // Use the Inventory routes for any requests to /api/v1/inventory
 
 // 🛑 If this is placed ABOVE the routes, it will never trigger and you will get HTML! 🛑
 app.use(errorMiddleware); // Middleware to handle errors globally
