@@ -20,7 +20,7 @@ const campaignSchema = new mongoose.Schema(
     // 🏥 Requires the Org to select which Blood Bank they want to partner with!
     bloodBankId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "BloodBankHospital",
+      ref: "BLOOD_BANK",
       required: true,
     },
     name: {
