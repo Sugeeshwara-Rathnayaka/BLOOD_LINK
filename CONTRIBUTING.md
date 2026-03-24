@@ -2,6 +2,20 @@
 
 Welcome to the Blood-Link backend repository! To keep our codebase clean, readable, and highly professional, we strictly follow the **Conventional Commits** standard for all changes.
 
+---
+
+## 🌳 Branching Strategy
+We use a **Feature Branch** workflow. The `main` branch is for stable, production-ready code only.
+
+1. **Never push directly to `main`.**
+2. **Create a branch** for every new task:
+   - `feature/your-feature-name` (e.g., `feature/donor-login`)
+   - `fix/your-fix-name` (e.g., `fix/date-validation`)
+3. **Open a Pull Request (PR)** to merge your branch into `main`.
+4. **CI/CD Check:** Your PR will only be merged if the GitHub Actions "Build & Test" pipeline passes (Green ✅).
+
+---
+
 ## 📝 Commit Message Guidelines
 
 Every time you save code to this repository, your commit message must use one of the following prefixes to categorize the work.
@@ -36,3 +50,16 @@ Every time you save code to this repository, your commit message must use one of
 ---
 
 _Note: By strictly following these rules, our CI/CD pipeline can automatically generate accurate Release Notes when we deploy a new version to production!_
+
+
+---
+
+## 🚀 Workflow for Contributors
+
+### Using Terminal:
+```bash
+git checkout -b feature/my-new-feature   # Create and switch to new branch
+# ... write code ...
+git add .
+git commit -m "feat: description of work"
+git push origin feature/my-new-feature
