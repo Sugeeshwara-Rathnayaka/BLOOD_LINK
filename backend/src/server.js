@@ -10,6 +10,7 @@ import HospitalRoutes from "./modules/normaHospital/normalHospital.routes.js"; /
 import DonorRoutes from "./modules/donor/donor.routes.js"; // Import the Donor routes
 import RequesterRoutes from "./modules/requester/requester.routes.js"; // Import the Requester routes
 import OrganizationRoutes from "./modules/organization/organization.routes.js"; // Import the Organization routes
+import CampaignRoutes from "./modules/campaigns/campaign.routes.js"; // Import the Campaign routes
 
 import { errorMiddleware } from "./common/middleware/globalError.middleware.js"; // Import the custom error handling middleware
 
@@ -29,6 +30,7 @@ app.use("/api/v1/hospital", HospitalRoutes); // Use the Hospital routes for any 
 app.use("/api/v1/donor", DonorRoutes); // Use the Donor routes for any requests to /api/v1/donor
 app.use("/api/v1/requester", RequesterRoutes); // Use the Requester routes for any requests to /api/v1/requester
 app.use("/api/v1/organization", OrganizationRoutes); // Use the Organization routes for any requests to /api/v1/organization
+app.use("/api/v1/campaigns", CampaignRoutes); // Use the Campaign routes for any requests to /api/v1/campaigns
 
 // 🛑 If this is placed ABOVE the routes, it will never trigger and you will get HTML! 🛑
 app.use(errorMiddleware); // Middleware to handle errors globally
