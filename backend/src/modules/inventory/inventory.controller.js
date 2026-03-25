@@ -1,5 +1,6 @@
 import { catchAsyncErrors } from "../../common/middleware/asyncHandler.middleware.js";
 import ErrorHandler from "../../common/middleware/error.middleware.js";
+import { formatBloodGroup } from "../../common/utils/bloodGroup.util.js";
 import { isValidNICFormat } from "../../common/utils/nic.util.js";
 import { Donor } from "../../models/auth/donor.model.js";
 import { BloodPacket } from "../../models/coreEntities/bloodPacket.model.js";
@@ -111,6 +112,149 @@ export const registerBloodPacket = catchAsyncErrors(async (req, res, next) => {
     success: true,
     message: "Blood packet registered successfully. Status set to TESTING.",
     data: newPacket,
+  });
+});
+
+// ==========================================
+// 🥶 GET HOSPITAL BLOOD INVENTORY (With Filters & FIFO)
+// ==========================================
+export const getBloodInventory = catchAsyncErrors(async (req, res, next) => {
+  // 1. Securely identify the hospital
+  const bloodBankId = req.user.bloodBankHospital || req.user._id;
+
+  // 2. 🎛️ Build the Filter Query (Allows searching by status or blood group)
+  const { status, bloodGroup } = req.query;
+  const filter = { bloodBankId }; // Always lock it to THEIR hospital first!
+
+  if (status) {
+    filter.status = status.toUpperCase();
+  }
+
+  if (bloodGroup) {
+    // 🛡️ URLs automatically convert "+" to " " (space).
+    // This flips any accidental spaces back into plus signs!
+    const fixedBloodGroup = bloodGroup.replace(" ", "+");
+
+    // Make sure you have formatBloodGroup imported at the top of your file!
+    filter.bloodGroup = formatBloodGroup(fixedBloodGroup);
+  }
+
+  // 3. 🔍 Fetch the Inventory with FIFO Sorting
+  const inventory = await BloodPacket.find(filter)
+    .populate("donorId", "nic name gender") // Grab basic donor info
+    .populate("campaignId", "name date location") // Grab campaign info if it exists
+    .sort({ expiryDate: 1 }); // ⏳ THE MAGIC LINE: 1 = Ascending (Closest to expiring shows up first!)
+
+  // 4. ✅ Success Response
+  res.status(200).json({
+    success: true,
+    count: inventory.length,
+    message:
+      inventory.length === 0
+        ? "Your blood fridge is currently empty for these filters."
+        : "Inventory fetched successfully.",
+    data: inventory,
+  });
+});
+
+// ==========================================
+// 🥶 GET HOSPITAL BLOOD INVENTORY (V2 - Optimized)
+// ==========================================
+// export const getBloodInventory = catchAsyncErrors(async (req, res, next) => {
+//   const bloodBankId = req.user.bloodBankHospital || req.user._id;
+
+//   // 1. Pagination Setup (Point 3)
+//   const page = parseInt(req.query.page, 10) || 1;
+//   const limit = parseInt(req.query.limit, 10) || 50; // Default 50 items per page
+//   const skip = (page - 1) * limit;
+
+//   // 2. Build the Filter
+//   const { status, bloodGroup, includeDetails } = req.query;
+//   const filter = { bloodBankId };
+
+//   if (status) {
+//     filter.status = status.toUpperCase();
+//   } else {
+//     // Point 1: Hide terminal states by default!
+//     filter.status = { $nin: ["EXPIRED", "DISCARDED", "TRANSFUSED"] };
+//   }
+
+//   if (bloodGroup) {
+//     filter.bloodGroup = formatBloodGroup(bloodGroup);
+//   }
+
+//   // Point 2: Automatic Expiry Handling on Read
+//   // If we are looking for AVAILABLE blood, NEVER return bags that expired today!
+//   if (filter.status === "AVAILABLE" || filter.status?.$nin) {
+//     filter.expiryDate = { $gte: new Date() };
+//   }
+
+//   // 3. 🔍 Build the Query (Point 5: Conditional Populate)
+//   let query = BloodPacket.find(filter)
+//     .sort({ expiryDate: 1 })
+//     .skip(skip)
+//     .limit(limit);
+
+//   if (includeDetails === "true") {
+//     query = query
+//       .populate("donorId", "nic name gender")
+//       .populate("campaignId", "name date location");
+//   }
+
+//   // Execute query and get total count for frontend pagination UI
+//   const [inventory, totalCount] = await Promise.all([
+//     query,
+//     BloodPacket.countDocuments(filter)
+//   ]);
+
+//   res.status(200).json({
+//     success: true,
+//     pagination: {
+//       total: totalCount,
+//       page,
+//       pages: Math.ceil(totalCount / limit),
+//     },
+//     data: inventory,
+//   });
+// });
+
+// ==========================================
+// 📊 GET INVENTORY SUMMARY (Dashboard Stats)
+// ==========================================
+export const getInventorySummary = catchAsyncErrors(async (req, res, next) => {
+  const bloodBankId = req.user.bloodBankHospital || req.user._id;
+
+  // We only want to summarize blood that is actually safe and ready to use
+  const summary = await BloodPacket.aggregate([
+    {
+      $match: {
+        bloodBankId: bloodBankId,
+        status: "AVAILABLE",
+        expiryDate: { $gte: new Date() }, // Ensure we don't count expired bags!
+      },
+    },
+    {
+      $group: {
+        _id: "$bloodGroup",
+        count: { $sum: 1 },
+        totalVolume: { $sum: "$volume" },
+      },
+    },
+    {
+      $sort: { _id: 1 }, // Sort alphabetically by blood group
+    },
+  ]);
+
+  // Format the output nicely for the frontend
+  const formattedSummary = summary.map((item) => ({
+    bloodGroup: item._id,
+    count: item.count,
+    totalVolume: item.totalVolume,
+  }));
+
+  res.status(200).json({
+    success: true,
+    data: formattedSummary,
   });
 });
 
