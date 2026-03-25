@@ -6,6 +6,7 @@ import {
 
 const bloodPacketSchema = new mongoose.Schema(
   {
+    // 1. Core Info (Keep your strict rules!)
     serialNumber: {
       type: String,
       required: [
@@ -30,29 +31,16 @@ const bloodPacketSchema = new mongoose.Schema(
       type: Number,
       required: true,
       default: 450, // Standard blood donation is 450ml
-    },
-    status: {
-      type: String,
-      required: true,
-      enum: [
-        "TESTING", // Freshly donated, waiting for disease screening
-        "AVAILABLE", // Safe and ready in the fridge
-        "RESERVED", // Booked for a specific patient surgery
-        "TRANSFUSED", // Has been given to a patient
-        "EXPIRED", // Passed its shelf life
-        "DISCARDED", // Failed disease testing or was damaged
-      ],
-      default: "TESTING",
+      min: 300,
+      max: 500,
     },
     collectionDate: {
       type: Date,
       required: true,
       default: Date.now,
     },
-    expiryDate: {
-      type: Date,
-    },
-    // 🔗 Relationships (Connecting to your ER diagram)
+
+    // 2. 🔗 Relationships (Connecting to your ER diagram)
     bloodBankId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "BLOOD_BANK", // The hospital holding this packet right now
@@ -68,6 +56,68 @@ const bloodPacketSchema = new mongoose.Schema(
       ref: "Campaign", // Was it collected at a campaign? (Optional)
       default: null,
     },
+    // 3. Status Engine (Added your new COLLECTED status)
+    status: {
+      type: String,
+      required: true,
+      enum: [
+        "COLLECTED", // Collected from the donor
+        "TESTING", // Freshly donated, waiting for disease screening
+        "AVAILABLE", // Safe and ready in the fridge
+        "RESERVED", // Booked for a specific patient surgery
+        "TRANSFUSED", // Has been given to a patient
+        "EXPIRED", // Passed its shelf life
+        "DISCARDED", // Failed disease testing or was damaged
+      ],
+      default: "TESTING",
+    },
+    expiryDate: {
+      type: Date,
+    },
+    // // 4. Clinical Data (Tech Lead Tip: NEVER use raw `Object`. Always define the shape!)
+    // testResults: {
+    //   hiv: {
+    //     type: String,
+    //     enum: ["POSITIVE", "NEGATIVE", "PENDING"],
+    //     default: "PENDING",
+    //   },
+    //   hepB: {
+    //     type: String,
+    //     enum: ["POSITIVE", "NEGATIVE", "PENDING"],
+    //     default: "PENDING",
+    //   },
+    //   syphilis: {
+    //     type: String,
+    //     enum: ["POSITIVE", "NEGATIVE", "PENDING"],
+    //     default: "PENDING",
+    //   },
+    //   testedBy: { type: mongoose.Schema.Types.ObjectId, ref: "SystemUser" },
+    //   testedAt: { type: Date },
+    // },
+    // // 5. Logistics (Structured instead of raw Object)
+    // storage: {
+    //   refrigeratorId: { type: String },
+    //   shelfNumber: { type: String },
+    // },
+    // reservedFor: {
+    //   type: mongoose.Schema.Types.ObjectId,
+    //   ref: "PatientRequest",
+    // }, // Or whatever your Request model is called
+
+    // 6. 🏆 THE AUDIT TRAIL (Your brilliant addition)
+    statusHistory: [
+      {
+        from: { type: String, required: true },
+        to: { type: String, required: true },
+        changedAt: { type: Date, default: Date.now },
+        changedBy: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "BloodBankAdmin",
+          required: true,
+        },
+        notes: { type: String }, // Optional: "Discarded due to fridge failure"
+      },
+    ],
   },
   { timestamps: true },
 );
