@@ -245,18 +245,103 @@ export const getInventorySummary = catchAsyncErrors(async (req, res, next) => {
     },
   ]);
 
-  // Format the output nicely for the frontend
-  const formattedSummary = summary.map((item) => ({
-    bloodGroup: item._id,
-    count: item.count,
-    totalVolume: item.totalVolume,
-  }));
+  // 🛑 Define what "Low Stock" means for your hospital
+  const LOW_STOCK_THRESHOLD = 5;
+
+  // Format the output and inject the alert messages!
+  const formattedSummary = summary.map((item) => {
+    // Check if the count is lower than or equal to our threshold
+    const isLow = item.count <= LOW_STOCK_THRESHOLD;
+
+    return {
+      bloodGroup: item._id,
+      count: item.count,
+      totalVolume: item.totalVolume,
+      isLowStock: isLow, // True or False for the React developer to use
+      alertMessage: isLow ? "⚠️ Critically Low Stock" : "✅ Stock Level Good", // The actual text message
+    };
+  });
 
   res.status(200).json({
     success: true,
     data: formattedSummary,
   });
 });
+
+// ==========================================
+// 📊 GET INVENTORY SUMMARY (Enterprise Dashboard - V3)
+// ==========================================
+// export const getInventorySummary = catchAsyncErrors(async (req, res, next) => {
+//   const bloodBankId = req.user.bloodBankHospital || req.user._id;
+
+//   // Point 3: Declare time once!
+//   const now = new Date();
+
+//   // 1. Run the Lightning-Fast Aggregation (Backed by our Compound Index!)
+//   const summary = await BloodPacket.aggregate([
+//     {
+//       $match: {
+//         bloodBankId: bloodBankId,
+//         status: "AVAILABLE",
+//         expiryDate: { $gte: now }
+//       }
+//     },
+//     {
+//       $group: {
+//         _id: "$bloodGroup",
+//         count: { $sum: 1 },
+//         totalVolume: { $sum: "$volume" }
+//       }
+//     }
+//   ]);
+
+//   // Point 1: Fix the "Missing 0s" by creating a master template
+//   const inventoryByGroup = {};
+//   BLOOD_GROUPS.forEach(bg => {
+//     inventoryByGroup[bg] = {
+//       bloodGroup: bg,
+//       count: 0,
+//       totalVolume: 0,
+//       isLowStock: true // Point 5: If it's 0, it's definitely low stock!
+//     };
+//   });
+
+//   // Point 4: Variables for Dashboard Grand Totals
+//   let totalUnits = 0;
+//   let totalVolume = 0;
+
+//   // Point 5: Define the hospital's safety threshold
+//   const LOW_STOCK_THRESHOLD = 5;
+
+//   // 2. Merge the DB results into our master template
+//   summary.forEach(item => {
+//     const bg = item._id;
+//     if (inventoryByGroup[bg]) {
+//       inventoryByGroup[bg].count = item.count;
+//       inventoryByGroup[bg].totalVolume = item.totalVolume;
+//       inventoryByGroup[bg].isLowStock = item.count <= LOW_STOCK_THRESHOLD;
+
+//       // Add to our running grand totals
+//       totalUnits += item.count;
+//       totalVolume += item.totalVolume;
+//     }
+//   });
+
+//   // 3. ✅ Send the Enterprise Response
+//   res.status(200).json({
+//     success: true,
+//     data: {
+//       // The high-level stats for the top of the dashboard
+//       overview: {
+//         totalUnits,
+//         totalVolume,
+//         lastUpdated: now
+//       },
+//       // The detailed array for the pie charts and tables
+//       inventory: Object.values(inventoryByGroup)
+//     }
+//   });
+// });
 
 // ==========================================
 // 🔄 UPDATE BLOOD PACKET STATUS
