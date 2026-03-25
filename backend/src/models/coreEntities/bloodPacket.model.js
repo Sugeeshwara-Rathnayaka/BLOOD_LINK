@@ -122,6 +122,8 @@ const bloodPacketSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
+bloodPacketSchema.index({ bloodBankId: 1, status: 1, expiryDate: 1 });
+
 // 🚀 Pre-save hook: Automatically calculate the expiry date!
 bloodPacketSchema.pre("save", async function () {
   if (this.isNew && !this.expiryDate) {
