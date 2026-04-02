@@ -14,19 +14,19 @@ export const errorMiddleware = (err, req, res, next) => {
   // 🔴 2. Handle Mongoose CastError (Invalid ObjectId)
   // Example: Trying to find a hospital by ID, but the ID is too short or has invalid characters
   if (err instanceof mongoose.Error.CastError) {
-    err = new ErrorHandler(
-      `Resource not found. Invalid ${err.path}: ${err.value}`,
-      400,
-    );
+    const message = `Resource not found. Invalid ${err.path}: ${err.value}`;
+    const error = new ErrorHandler(message, 400);
+    error.stack = err.stack; // ✅ Keeps the original stack trace so terminal logs point to the controller, not this file.
+    err = error;
   }
 
   // 🔴 3. Handle Mongoose Duplicate Key Error
   // Example: Trying to signup with an email that is already in the database
   if (err.code === 11000) {
-    err = new ErrorHandler(
-      `Duplicate ${Object.keys(err.keyValue)} entered`,
-      409,
-    );
+    const message = `Duplicate ${Object.keys(err.keyValue)} entered`;
+    const error = new ErrorHandler(message, 409);
+    error.stack = err.stack; // ✅ Keeps the original stack trace so terminal logs point to the controller, not this file.
+    err = error;
   }
 
   // 🔴 4. Handle mongoose validation errors
@@ -52,6 +52,7 @@ export const errorMiddleware = (err, req, res, next) => {
   }
 
   // // 🔴 7. Handle Custom Mongoose Unique Errors (Sets 500 to 400)
+  // Example: A Mongoose schema with a unique field that throws an error when violated
   if (err.name === "MongooseError") {
     err = new ErrorHandler(err.message, 400);
   }

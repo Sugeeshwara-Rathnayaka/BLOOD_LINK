@@ -40,4 +40,8 @@ app.use("/api/v1/inventory", inventoryRoutes); // Use the Inventory routes for a
 app.use(errorMiddleware); // Middleware to handle errors globally
 
 const PORT = process.env.PORT || 5000; // Define the port to listen on
-app.listen(PORT, () => console.log(`Server is running on port ${PORT}`)); // Log a message when the server starts
+const MODE = process.env.NODE_ENV || "development"; // Define the mode (development or production)
+app.listen(PORT, () => {
+  console.log(`🚀 Server is running on port ${PORT}`); // Log a message when the server starts
+  console.log(`⚙️  Mode: ${MODE.toUpperCase()}`); // Log the mode (development or production) when the server starts
+});
