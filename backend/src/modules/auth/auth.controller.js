@@ -222,7 +222,16 @@ export const login = catchAsyncErrors(async (req, res, next) => {
   // }
 
   // If it's a Hospital, block them if the SuperAdmin hasn't approved them yet!
-  if (role === "Hospital" && user.hospital) {
+  if (role === "Hospital") {
+    // 🚨 FIX : Check if the hospital record actually exists first
+    if (!user.hospital) {
+      return next(
+        new ErrorHandler(
+          "The hospital record associated with this account has been deleted or is missing.",
+          404,
+        ),
+      );
+    }
     if (user.hospital.status === "PENDING") {
       return next(
         new ErrorHandler(
