@@ -67,7 +67,7 @@ git checkout -b feature/my-new-feature    # Create and switch to new branch
 git status                                # Check what files you changed
 git add .                                 # Stage all your backend/frontend changes
 git commit -m "feat: description of work" # Save the snapshot with a good prefix (feat:, fix:, chore:)
-git pull origin main                      # ALWAYS pull the latest main before you push!
+git pull --rebase origin main             # ALWAYS pull safely (avoids messy history) the latest main before push!
 git push origin feature/my-new-feature    # Push your code to the cloud
 
 git checkout main                         # Switch back to the main branch
@@ -80,27 +80,41 @@ git checkout main                         # Switch back to the main branch
 git commit --amend -m "the fully corrected message here" # Fix a typo in the commit message you JUST made
 git add forgotten-file.js
 git commit --amend --no-edit                             # Add a file you forgot to your last commit
-git push origin <branch-name> --force                    # Push to GitHub AFTER you amended a commit (Overrides the cloud)
+git restore --staged file.js                             # Remove file from staging (keep changes)
+git push origin <branch-name> --force-with-lease         # Safe force Push AFTER you amended a commit or rebase (Overrides the cloud)
 ```
 
 ## 📦 3. Stashing (Holding your place)
 *If you are halfway through a controller, but suddenly need to switch branches to fix a bug, use this instead of making a messy half-finished commit.*
 
 ```bash
-git stash       # Hide your unsaved changes temporarily
+git stash -u      # Hide your unsaved changes temporarily (including untracked files)
 # (Switch branches, do your work, come back to this branch)
 git stash pop   # Bring your hidden changes back to your screen
 ```
 
-## 🔬 4. Viewing History
+## 🔄 4. Sync Feature Branch with Main (Better Way)
+```bash
+git fetch origin        # Get latest changes
+git rebase origin/main  # Rebase instead of merge (clean history)
+```
+
+## 🔬 5. Viewing History
 *When you need to remember what you did yesterday.*
 
 ```bash
-git log --oneline  # View a simple, clean list of your past commits
-git diff           # See the exact lines of code you changed before committing
+git log --oneline                  # View a simple, clean list of your past commits
+git diff                           # See the exact lines of code you changed before committing
+git show <commit-id>               # Show specific commit details
+git branch --contains <commit-id>  # Find which branch contains a commit
 ```
 
-## 🛠️ 5. Initial Setup & Advanced
+## 🧹 6. Fix Tracking / .gitignore Issues
+```bash
+git rm -r --cached <path>     # Remove files from git tracking but keep locally
+```
+
+## 🛠️ 7. Initial Setup & Advanced
 *Things you rarely need, but should keep on hand.*
 
 ```bash
