@@ -3,6 +3,7 @@ import {
   createPatientRequest,
   getBloodBankRequests,
   getMySentRequests,
+  updateRequestStatus,
 } from "./patientRequest.controller.js";
 import {
   isAuthenticatedUser,
@@ -31,6 +32,13 @@ router.get(
   "/sent",
   authorizeRoles("Hospital", "BloodBankAdmin"),
   getMySentRequests,
+);
+
+// 4. Update request status (Approve/Reject and fulfill)
+router.put(
+  "/:id/status",
+  authorizeRoles("Hospital", "BloodBankAdmin"),
+  updateRequestStatus,
 );
 
 export default router;

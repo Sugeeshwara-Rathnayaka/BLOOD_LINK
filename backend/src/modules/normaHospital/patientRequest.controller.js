@@ -2,6 +2,7 @@ import { PatientRequest } from "../../models/coreEntities/patientRequest.model.j
 import { BloodBankHospital } from "../../models/coreEntities/hospitals.model.js"; // Assuming you have a Hospital model
 import ErrorHandler from "../../common/middleware/error.middleware.js";
 import { catchAsyncErrors } from "../../common/middleware/asyncHandler.middleware.js";
+import { BloodPacket } from "../../models/coreEntities/bloodPacket.model.js";
 
 // ==========================================
 // 🏥 1. CREATE NEW PATIENT REQUEST (B2B)
@@ -141,4 +142,97 @@ export const getMySentRequests = catchAsyncErrors(async (req, res, next) => {
     count: requests.length,
     requests,
   });
+});
+
+// ==========================================
+// ✅ 4. UPDATE REQUEST STATUS & ASSIGN BLOOD
+// ==========================================
+export const updateRequestStatus = catchAsyncErrors(async (req, res, next) => {
+  const { id } = req.params; // The request ID from the URL
+  const { status, assignedPackets } = req.body; // "APPROVED" or "REJECTED", and an array of Packet IDs
+
+  // 1. Find the pending request
+  const request = await PatientRequest.findById(id);
+  if (!request) {
+    return next(new ErrorHandler("Blood request not found", 404));
+  }
+
+  // 2. Security Check: Ensure the logged-in user actually owns the target Blood Bank
+  const currentHospitalId =
+    req.user.role === "Hospital"
+      ? req.user.hospital?.id
+      : req.user.bloodBankHospital?.toString();
+
+  if (request.targetBloodBankId.toString() !== currentHospitalId) {
+    return next(
+      new ErrorHandler(
+        "You do not have permission to modify this request",
+        403,
+      ),
+    );
+  }
+
+  // 3. Prevent updating already processed requests
+  if (request.status !== "PENDING") {
+    return next(
+      new ErrorHandler(`This request is already ${request.status}`, 400),
+    );
+  }
+
+  // 4. Handle REJECTION Flow
+  if (status === "REJECTED") {
+    request.status = "REJECTED";
+    await request.save();
+    return res.status(200).json({
+      success: true,
+      message: "Blood request rejected successfully.",
+      request,
+    });
+  }
+
+  // 5. Handle APPROVAL & FULFILLMENT Flow
+  if (status === "APPROVED") {
+    if (!assignedPackets || assignedPackets.length === 0) {
+      return next(
+        new ErrorHandler(
+          "You must assign specific Blood Packets to approve this order.",
+          400,
+        ),
+      );
+    }
+
+    // Verify all assigned packets are actually in the fridge and AVAILABLE
+    const availablePackets = await BloodPacket.find({
+      _id: { $in: assignedPackets },
+      status: "AVAILABLE", // Ensure they haven't been dispatched to someone else!
+    });
+
+    if (availablePackets.length !== assignedPackets.length) {
+      return next(
+        new ErrorHandler(
+          "One or more selected blood packets are invalid or already dispatched. Please refresh your inventory.",
+          400,
+        ),
+      );
+    }
+
+    // Update the physical Blood Packets to show they are booked for this request
+    await BloodPacket.updateMany(
+      { _id: { $in: assignedPackets } },
+      { $set: { status: "RESERVED" } },
+    );
+
+    // Update the Request
+    request.status = "APPROVED";
+    request.assignedPackets = assignedPackets; // Save the barcodes/IDs to the receipt
+    await request.save();
+
+    return res.status(200).json({
+      success: true,
+      message: "Request approved and blood packets have been dispatched.",
+      request,
+    });
+  }
+
+  return next(new ErrorHandler("Invalid status update provided", 400));
 });
