@@ -1,0 +1,43 @@
+name: Blood-Link Frontend CI
+
+# 1. TRIGGER: Run when code in the frontend folder changes
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-ci.yml'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+      - 'frontend/**'
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest 
+
+    # 2. CONTEXT: Tell GitHub to run these commands inside the frontend folder
+    defaults:
+      run:
+        working-directory: ./frontend 
+
+    steps:
+    - name: 📥 Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: ⚙️ Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20.x
+        cache: 'npm'
+        cache-dependency-path: './frontend/package-lock.json'
+
+    # Use npm ci for strict, reliable installations just like your backend
+    - name: 📦 Install Dependencies
+      run: npm ci
+
+    - name: 🧹 Run Linter
+      run: npm run lint
+
+    - name: 🏗️ Build Vite Project
+      run: npm run build
