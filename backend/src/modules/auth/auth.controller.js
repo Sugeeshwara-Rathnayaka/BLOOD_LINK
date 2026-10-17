@@ -19,44 +19,72 @@ import { BloodBankAdmin } from "../../models/auth/bloodBankAdmin.model.js";
 
 // 🩸 1. Register Donor
 export const registerDonor = catchAsyncErrors(async (req, res, next) => {
-  const { password, confirmPassword } = req.body;
-  // 1️⃣ Check if both fields exist and if they match
+  // 1️⃣ Destructure only the expected fields, separating passwords and sensitive controls
+  const { password, confirmPassword, ...donorData } = req.body;
+  // 2️⃣ Validate password match early (Fast fail)
   if (password !== confirmPassword) {
     return next(new ErrorHandler("Passwords do not match!", 400));
   }
-  // 2️⃣ If they match, proceed with creating the user
-  const user = await Donor.create(req.body); // Model automatically sets role: "Donor"
+  // 🔒 3️⃣ Force security defaults (Prevent status/role spoofing)
+  donorData.validation = "PENDING";
+  donorData.role = "Donor";
+  donorData.password = password; // Re-attach so pre-save hook handles hashing
 
-  // Use the universal sendToken function to handle cookie and response
-  sendToken(user, 201, res, "Donor registered!"); // The sendToken function will generate the JWT, set the cookie, and send the response
+  // 4️⃣ Create the user using sanitized, controlled data
+  const user = await Donor.create(donorData);
+  // 5️⃣ Respond securely (The sendToken function will generate the JWT, set the cookie, and send the response)
+  sendToken(
+    user,
+    201,
+    res,
+    "Donor registered successfully! Awaiting verification.",
+  );
 });
 
 // 🧑‍🤝‍🧑 2. Register Requester
 export const registerRequester = catchAsyncErrors(async (req, res, next) => {
-  const { password, confirmPassword } = req.body;
-  // 1️⃣ Check if both fields exist and if they match
+  // 1️⃣ Destructure sensitive and required fields from req.body
+  const { password, confirmPassword, ...requesterData } = req.body;
+
+  // 2️⃣ Check if passwords match (Fast fail)
   if (password !== confirmPassword) {
     return next(new ErrorHandler("Passwords do not match!", 400));
   }
-  // 2️⃣ If they match, proceed with creating the user
-  const user = await Requester.create(req.body); // Model automatically sets role: "Requester"
+  // 🔒 3️⃣ Force security defaults (Prevent role spoofing or unexpected injection)
+  requesterData.role = "Requester";
+  requesterData.password = password; // Re-attach password so the Mongoose pre-save hashing hook catches it
 
-  // Use the universal sendToken function to handle cookie and response
-  sendToken(user, 201, res, "Requester registered!"); // The sendToken function will generate the JWT, set the cookie, and send the response
+  // 4️⃣ Create the requester using sanitized data
+  const user = await Requester.create(requesterData);
+
+  // 5️⃣ Respond securely (The sendToken function will generate the JWT, set the cookie, and send the response)
+  sendToken(user, 201, res, "Requester registered successfully!");
 });
 
 // 🏢 3. Register Organization
 export const registerOrganization = catchAsyncErrors(async (req, res, next) => {
-  const { password, confirmPassword } = req.body;
-  // 1️⃣ Check if both fields exist and if they match
+  // 1️⃣ Destructure sensitive and required fields from req.body
+  const { password, confirmPassword, ...orgData } = req.body;
+
+  // 2️⃣ Check if passwords match (Fast fail)
   if (password !== confirmPassword) {
     return next(new ErrorHandler("Passwords do not match!", 400));
   }
-  // 2️⃣ If they match, proceed with creating the user
-  const user = await Organization.create(req.body); // Model automatically sets role: "Organization"
+  // 🔒 3️⃣ Force security defaults (Prevent role spoofing or unexpected injection)
+  orgData.status = "PENDING";
+  orgData.role = "Organization";
+  orgData.password = password; // Re-attach password so the Mongoose pre-save hashing hook catches it
 
-  // Use the universal sendToken function to handle cookie and response
-  sendToken(user, 201, res, "Organization registered!"); // The sendToken function will generate the JWT, set the cookie, and send the response
+  // 4️⃣ Create the organization using sanitized data
+  const user = await Organization.create(orgData);
+
+  // 5️⃣ Respond securely (The sendToken function will generate the JWT, set the cookie, and send the response)
+  sendToken(
+    user,
+    201,
+    res,
+    "Organization registered successfully! Awaiting admin approval.",
+  );
 });
 
 // 🏥 4. Register Normal Hospital (Requires special handling)
@@ -82,16 +110,20 @@ export const registerNormalHospital = catchAsyncErrors(
         return next(new ErrorHandler("Password do not match!", 400));
       }
 
-      // ✂️ Separate 'telephones' from the rest of the hospital data
+      // ✂️ Separate 'telephones' and strip sensitive fields from the rest of the hospital data
       // We don't want to send 'telephones' array to the Hospital model,
       // because the Hospital model doesn't have that field (it uses a Virtual).
-      const { telephones, ...hospitalData } = hospital; // This removes the 'telephones' array from the object we send to "NormalHospital.create".
+      const {
+        telephones,
+        createdBy: _createdBy, // destructuring with renamed variables
+        reviewedBy: _reviewedBy, // destructuring with renamed variables
+        ...hospitalData
+      } = hospital; // This removes the 'telephones' array from the object we send to "NormalHospital.create".
 
-      // 🔒 Secure fields
-      hospital.status = "PENDING";
-      hospital.isActive = true;
-      delete hospital.createdBy; // Prevent client from setting createdBy
-      delete hospital.reviewedBy; // Prevent client from setting reviewedBy
+      // 🔒 Force security defaults directly on hospitalData
+      hospitalData.status = "PENDING";
+      hospitalData.isActive = true;
+      // Note: createdBy and reviewedBy are already removed via destructuring above!
 
       // 1️⃣ Create Hospital Profile using the Discriminator Model (this will automatically set type: "NORMAL")
       const newHospital = await NormalHospital.create([hospitalData], {
@@ -105,7 +137,7 @@ export const registerNormalHospital = catchAsyncErrors(
           {
             hospital: hospitalId, // Link to the newly created hospital profile
             userName: account.userName,
-            password: account.password,
+            password: account.password, // The pre-save hook will hash this
           },
         ],
         { session },

@@ -7,6 +7,7 @@ import {
   formatDistrictName,
   getProvinceByDistrict,
 } from "../../common/utils/district.util.js";
+import { isValidRegistrationNumber } from "../../common/utils/reg.util.js";
 
 const orgSchema = new mongoose.Schema(
   {
@@ -28,6 +29,26 @@ const orgSchema = new mongoose.Schema(
       required: true,
       minLength: [8, "Password Must Contain at Least 8 Characters!"],
       select: false,
+    },
+    registrationNumber: {
+      type: String,
+      required: [true, "Please provide a valid registration number"],
+      unique: true,
+      trim: true,
+      uppercase: true, // Automatically converts input to uppercase (e.g., pv1234 -> PV1234)
+      validate: {
+        // 🚀 Reusing your utility function right here!
+        validator: function (v) {
+          return isValidRegistrationNumber(v);
+        },
+        message: (props) =>
+          `${props.value} is not a valid Sri Lankan company or NGO registration number format!`,
+      },
+    },
+    status: {
+      type: String,
+      enum: ["PENDING", "APPROVED", "REJECTED", "SUSPENDED"],
+      default: "PENDING",
     },
     address: {
       street: {
