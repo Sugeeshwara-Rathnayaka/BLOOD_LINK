@@ -1,122 +1,98 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { Routes, Route, Navigate } from "react-router-dom";
+import Login from "./pages/Login.jsx";
+import Home from "./pages/Home.jsx";
+import ProtectedRoute from "./components/routing/ProtectedRoute";
+import DashboardLayout from "./components/layout/DashboardLayout";
+import RoleSelection from "./pages/RoleSelection.jsx";
+import Register from "./pages/Register.jsx";
+import BloodBankDashboard from "./pages/BloodBankDashboard.jsx";
+import HospitalDashboard from "./pages/HospitalDashboard.jsx";
+import SuperAdminDashboard from "./pages/SuperAdminDashboard.jsx";
+import DonorDashboard from "./pages/DonorDashboard.jsx";
+import OrganizationDashboard from "./pages/OrganizationDashboard.jsx";
+import RequesterDashboard from "./pages/RequesterDashboard.jsx";
+import AdminLogin from "./pages/AdminLogin.jsx";
 
-function App() {
-  const [count, setCount] = useState(0)
-
+export default function App() {
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <Routes>
+      {/* Public Routes */}
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<RoleSelection mode="login" />} />
+      <Route path="/register" element={<RoleSelection mode="register" />} />
+      <Route path="/login/:roleId" element={<Login />} />
+      <Route path="/register/:roleId" element={<Register />} />
 
-      <div className="ticks"></div>
+      {/* Secret Internal Route */}
+      <Route path="/staff-portal-secure" element={<AdminLogin />} />
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      {/* Protected Dashboard Routes */}
+      <Route element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
+          {/* Super Admin Routes */}
+          <Route
+            path="/superadmin/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["SuperAdmin"]}>
+                <SuperAdminDashboard />
+              </ProtectedRoute>
+            }
+          />
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+          {/* Blood Bank Routes */}
+          <Route
+            path="/bloodbank/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["BloodBankAdmin", "SuperAdmin"]}>
+                <BloodBankDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Hospital Routes */}
+          <Route
+            path="/hospital/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Hospital"]}>
+                <HospitalDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Donor Routes */}
+          <Route
+            path="/donor/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Donor"]}>
+                <DonorDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Organization Routes */}
+          <Route
+            path="/organization/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Organization"]}>
+                <OrganizationDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Requester Routes */}
+          <Route
+            path="/requester/dashboard"
+            element={
+              <ProtectedRoute allowedRoles={["Requester"]}>
+                <RequesterDashboard />
+              </ProtectedRoute>
+            }
+          />
+        </Route>
+      </Route>
+
+      {/* Catch-All Route for 404s */}
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  );
 }
-
-export default App
