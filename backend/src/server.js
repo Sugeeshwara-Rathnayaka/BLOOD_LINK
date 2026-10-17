@@ -2,6 +2,7 @@ import express from "express"; // Import the Express library
 import dotenv from "dotenv"; // Import the dotenv library to load environment variables
 import cookieParser from "cookie-parser"; // Import cookie-parser to parse cookies in incoming requests
 import connectDB from "./config/db.js"; // Import the function to connect to the database
+import cors from "cors"; // Import the CORS middleware to handle cross-origin requests
 
 import authRoutes from "./modules/auth/auth.routes.js"; // Import the authentication routes
 import SuperAdminRoutes from "./modules/superAdmin/superAdmin.routes.js"; // Import the SuperAdmin routes
@@ -19,8 +20,14 @@ import { errorMiddleware } from "./common/middleware/globalError.middleware.js";
 dotenv.config(); // Load environment variables from .env file
 connectDB(); // Connect to the database before starting the server
 const app = express(); // Create an instance of the Express application
-app.use(cookieParser()); // Middleware to parse cookies in incoming requests
 
+const corsOptions = {
+  origin: "http://localhost:3000", // Your frontend origin
+  credentials: true, // Allow credentials
+  optionsSuccessStatus: 200,
+};
+app.use(cookieParser()); // Middleware to parse cookies in incoming requests
+app.use(cors(corsOptions));
 app.use(express.json()); // Middleware to parse JSON bodies
 
 app.get("/", (req, res) => res.send("Server is Live!")); // Define a route for the root URL
