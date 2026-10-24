@@ -21,6 +21,16 @@ import { FaHeartbeat, FaEye, FaEyeSlash } from "react-icons/fa";
 import { useAuth } from "../context/AuthContext";
 import api from "../services/api";
 
+const dashboardRoutes = {
+  SuperAdmin: "/superadmin/dashboard",
+  BloodBankAdmin: "/bloodbank/dashboard",
+  Hospital: "/hospital/dashboard",
+  Donor: "/donor/dashboard",
+  Requester: "/requester/dashboard",
+  Organization: "/organization/dashboard",
+};
+
+const validRoles = Object.keys(dashboardRoutes);
 export default function Login() {
   const { roleId } = useParams(); // Get the roleId from the URL
   const { login } = useAuth();
@@ -39,61 +49,64 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const routeUserToDashboard = (userRole) => {
-    switch (userRole) {
-      case "SuperAdmin":
-        navigate("/superadmin/dashboard");
-        break;
-      case "BloodBankAdmin":
-        navigate("/bloodbank/dashboard");
-        break;
-      case "Hospital":
-        navigate("/hospital/dashboard");
-        break;
-      case "Donor":
-        navigate("/donor/dashboard");
-        break;
-      case "Requester":
-        navigate("/requester/dashboard");
-        break;
-      case "Organization":
-        navigate("/organization/dashboard");
-        break;
-      default:
-        navigate("/");
-    }
-  };
+  const isValidRole = validRoles.includes(roleId);
 
   const handleLogin = async (e) => {
     e.preventDefault();
+    if (!isValidRole) {
+      toast({
+        title: "Invalid account type",
+        description: "Please select a valid account type.",
+        status: "error",
+        duration: 4000,
+        isClosable: true,
+      });
+
+      navigate("/login", { replace: true });
+      return;
+    }
     setIsLoading(true);
 
     try {
       // Sends identifier, password, and role just like your controller requires
       const { data } = await api.post("/auth/login", {
-        identifier,
+        identifier: identifier.trim(),
         password,
         role: roleId, // Use the roleId from the URL
       });
-
-      // Pass the user and token to your AuthContext
-      login(data.user, data.token);
+      const userData = data?.user; // Get the user data from the response
+      if (!userData) {
+        throw new Error("The server did not return the expected user profile.");
+      }
+      // Ensure the authenticated account matches the selected role.
+      if (userData.role !== roleId) {
+        throw new Error(
+          "The returned account type does not match the selected account type.",
+        );
+      }
+      // The backend handles the HTTP-only authentication cookie.
+      login(userData);
 
       toast({
         title: "Login Successful",
-        description: `Welcome back!`,
+        description: `Welcome back to Blood-Link!`,
         status: "success",
         duration: 3000,
         isClosable: true,
       });
 
-      // Route based on the role we selected
-      routeUserToDashboard(roleId);
+      // Redirect to the appropriate dashboard based on the user's role
+      navigate(dashboardRoutes[userData.role], {
+        replace: true,
+      });
     } catch (error) {
       toast({
         title: "Authentication Failed",
         // Safely captures your backend ErrorHandler messages (like "Invalid credentials" or "Pending approval")
-        description: error.response?.data?.message || "Something went wrong.",
+        description:
+          error.response?.data?.message ||
+          error.message ||
+          "Something went wrong. Please try again.",
         status: "error",
         duration: 4000,
         isClosable: true,
