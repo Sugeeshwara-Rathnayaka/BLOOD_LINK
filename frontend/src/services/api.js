@@ -18,13 +18,14 @@ api.interceptors.response.use(
   (error) => {
     // Check if the error is 401 AND the request was NOT going to the login route
     if (
-      error.response &&
-      error.response.status === 401 &&
-      !error.config.url.includes("/login")
+      error.response?.status === 401 &&
+      error.config?.url &&
+      !error.config.url.includes("/auth/login") &&
+      !error.config.url.includes("/auth/me") &&
+      !error.config.url.includes("/auth/logout")
     ) {
       // We no longer remove the token, just the user
       localStorage.removeItem("user");
-      window.location.href = "/login";
     }
     return Promise.reject(error);
   },

@@ -19,6 +19,7 @@ import {
   DrawerOverlay,
   Badge,
   CloseButton,
+  Heading,
 } from "@chakra-ui/react";
 import {
   FiHome,
@@ -34,6 +35,7 @@ import {
 } from "react-icons/fi";
 import { Outlet, useLocation, Link as RouterLink } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
+import { FaHeartbeat } from "react-icons/fa";
 
 // 1. Dynamic Links based on Role
 const getNavLinks = (role) => {
@@ -98,13 +100,16 @@ const getRoleStyle = (role) => {
 
 export default function DashboardLayout() {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  const { user, logout } = useAuth();
+  const { user, logout, isLoggingOut } = useAuth();
   // const navigate = useNavigate();
 
   // Safely extract the display name to prevent React object crashes
   const displayName = user?.name?.firstName
     ? `${user.name.firstName} ${user.name.lastName}`
-    : user?.name || user?.email || "User";
+    : user?.name ||
+      user?.organizationName ||
+      user?.hospital.hospitalName ||
+      "User";
 
   const roleStyle = getRoleStyle(user?.role);
   const LinkItems = getNavLinks(user?.role);
@@ -145,6 +150,7 @@ export default function DashboardLayout() {
         displayName={displayName}
         roleStyle={roleStyle}
         logout={logout}
+        isLoggingOut={isLoggingOut}
       />
 
       {/* MAIN CONTENT AREA */}
@@ -180,16 +186,11 @@ const SidebarContent = ({ onClose, LinkItems, roleStyle, ...rest }) => {
       {...rest}
     >
       <Flex h="20" alignItems="center" mx="8" justify="space-between">
-        <HStack spacing={3}>
-          <Icon as={FiDroplet} boxSize={6} color="red.500" />
-          <Text
-            fontSize="2xl"
-            fontFamily="monospace"
-            fontWeight="bold"
-            color="red.500"
-          >
+        <HStack spacing={2}>
+          <Icon as={FaHeartbeat} w={8} h={8} color="red.500" />
+          <Heading size="md" color="red.500" letterSpacing="tight">
             Blood-Link
-          </Text>
+          </Heading>
         </HStack>
         <CloseButton display={{ base: "flex", md: "none" }} onClick={onClose} />
       </Flex>
@@ -202,7 +203,7 @@ const SidebarContent = ({ onClose, LinkItems, roleStyle, ...rest }) => {
           py={1}
           borderRadius="md"
         >
-          {roleStyle.label} Portal
+          {roleStyle.label} Dashboard
         </Badge>
       </Box>
 
@@ -264,7 +265,14 @@ const NavItem = ({ icon, children, path, onClick, ...rest }) => {
   );
 };
 
-const MobileNav = ({ onOpen, displayName, roleStyle, logout, ...rest }) => {
+const MobileNav = ({
+  onOpen,
+  displayName,
+  roleStyle,
+  logout,
+  isLoggingOut,
+  ...rest
+}) => {
   return (
     <Flex
       ml={{ base: 0, md: 60 }}
@@ -286,15 +294,10 @@ const MobileNav = ({ onOpen, displayName, roleStyle, logout, ...rest }) => {
       />
 
       <HStack spacing={3} display={{ base: "flex", md: "none" }}>
-        <Icon as={FiDroplet} boxSize={5} color="red.500" />
-        <Text
-          fontSize="xl"
-          fontFamily="monospace"
-          fontWeight="bold"
-          color="red.500"
-        >
+        <Icon as={FaHeartbeat} w={8} h={8} color="red.500" />
+        <Heading size="md" color="red.500" letterSpacing="tight">
           Blood-Link
-        </Text>
+        </Heading>
       </HStack>
 
       <HStack spacing={{ base: "0", md: "6" }}>
@@ -340,10 +343,11 @@ const MobileNav = ({ onOpen, displayName, roleStyle, logout, ...rest }) => {
               <MenuItem
                 icon={<FiLogOut />}
                 onClick={logout}
+                isDisabled={isLoggingOut}
                 color="red.500"
                 fontWeight="bold"
               >
-                Sign out
+                {isLoggingOut ? "Signing out..." : "Sign out"}
               </MenuItem>
             </MenuList>
           </Menu>

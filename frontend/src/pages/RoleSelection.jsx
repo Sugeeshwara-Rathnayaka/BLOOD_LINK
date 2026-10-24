@@ -93,6 +93,7 @@ export default function RoleSelection({ mode = "register" }) {
   ];
 
   const handleRoleSelection = (roleId) => {
+    console.log("Selected role:", roleId);
     // Dynamically route to either /login/:roleId or /register/:roleId
     navigate(`/${mode}/${roleId}`);
   };
