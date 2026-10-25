@@ -24,7 +24,7 @@ import {
   GridItem,
 } from "@chakra-ui/react";
 import { FaArrowLeft, FaUserPlus } from "react-icons/fa";
-import api from "../services/api";
+import api from "../../../services/api";
 
 // Standard Sri Lankan Districts for Schema Enums
 const SRI_LANKAN_DISTRICTS = [

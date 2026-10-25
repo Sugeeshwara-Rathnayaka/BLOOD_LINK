@@ -9,10 +9,7 @@ import {
   useColorModeValue,
   HStack,
   VStack,
-  Container,
   Divider,
-  Link as ChakraLink,
-  IconButton,
   Badge,
 } from "@chakra-ui/react";
 import { Link as RouterLink } from "react-router-dom";
@@ -21,9 +18,6 @@ import {
   FaHandsHelping,
   FaCalendarAlt,
   FaUsers,
-  FaTwitter,
-  FaFacebook,
-  FaInstagram,
   FaMapMarkerAlt,
   FaClock,
   FaTint,
@@ -60,7 +54,7 @@ const Home = () => {
 
   const getDashboardRoute = () => {
     if (!user) return "/login";
-    return `/${user.role === "BloodBankAdmin" ? "bloodbank" : user.role.toLowerCase()}/dashboard`;
+    return `/${user.role.toLowerCase()}/dashboard`;
   };
 
   const todaysCampaigns = [
@@ -127,67 +121,7 @@ const Home = () => {
 
   return (
     <Box>
-      {/* 1. PUBLIC NAVBAR */}
-      <Box
-        position="fixed"
-        top={0}
-        w="full"
-        zIndex={100}
-        bg={navBg}
-        boxShadow="sm"
-        borderBottom="1px solid"
-        borderColor={borderColor}
-        px={[4, 8, 16]}
-        py={4}
-      >
-        <Flex justify="space-between" align="center" maxW="7xl" mx="auto">
-          <HStack as={RouterLink} to="/" spacing={2} _hover={{ opacity: 0.8 }}>
-            <Icon as={FaHeartbeat} w={8} h={8} color="red.500" />
-            <Heading size="md" color="red.500" letterSpacing="tight">
-              Blood-Link
-            </Heading>
-          </HStack>
-          <HStack spacing={8} display={{ base: "none", md: "flex" }}>
-            <ChakraLink fontWeight="medium" _hover={{ color: "red.500" }}>
-              How it Works
-            </ChakraLink>
-            <ChakraLink fontWeight="medium" _hover={{ color: "red.500" }}>
-              Who Can Donate
-            </ChakraLink>
-            <ChakraLink fontWeight="medium" _hover={{ color: "red.500" }}>
-              Hospitals
-            </ChakraLink>
-          </HStack>
-          <HStack spacing={4}>
-            {user ? (
-              <Button
-                as={RouterLink}
-                to={getDashboardRoute()}
-                colorScheme="red"
-                variant="solid"
-              >
-                Dashboard
-              </Button>
-            ) : (
-              <>
-                <Button
-                  as={RouterLink}
-                  to="/login"
-                  variant="ghost"
-                  colorScheme="red"
-                >
-                  Sign In
-                </Button>
-                <Button as={RouterLink} to="/register" colorScheme="red">
-                  Register
-                </Button>
-              </>
-            )}
-          </HStack>
-        </Flex>
-      </Box>
-
-      {/* 2. HERO SECTION */}
+      {/* 1. HERO SECTION */}
       <Flex
         direction="column"
         align="center"
@@ -333,7 +267,7 @@ const Home = () => {
         </Box>
       </Flex>
 
-      {/* 3. LIVE GRID: CAMPAIGNS & NOTIFICATIONS */}
+      {/* 2. LIVE GRID: CAMPAIGNS & NOTIFICATIONS */}
       <Box
         py={16}
         px={[4, 8, 16]}
@@ -542,7 +476,7 @@ const Home = () => {
         </Box>
       </Box>
 
-      {/* 4. FEATURES SECTION */}
+      {/* 3. FEATURES SECTION */}
       <Box py={20} px={[4, 8, 16]} bg={featuresSectionBg}>
         <Box maxW="7xl" mx="auto">
           <Heading
@@ -577,7 +511,7 @@ const Home = () => {
         </Box>
       </Box>
 
-      {/* 5. CALL TO ACTION SECTION */}
+      {/* 4. CALL TO ACTION SECTION */}
       <Box
         py={20}
         px={[4, 8, 16]}
@@ -609,101 +543,6 @@ const Home = () => {
             {user ? "Go to Dashboard" : "Join Now"}
           </Button>
         </Box>
-      </Box>
-
-      {/* 6. FOOTER */}
-      <Box bg="gray.900" color="gray.300" py={12} px={[4, 8, 16]}>
-        <Container
-          as={Flex}
-          maxW="7xl"
-          direction={{ base: "column", md: "row" }}
-          justify="space-between"
-          spacing={8}
-        >
-          <VStack align="start" maxW="sm" mb={{ base: 8, md: 0 }}>
-            <HStack spacing={2}>
-              <Icon as={FaHeartbeat} w={6} h={6} color="red.500" />
-              <Heading size="md" color="white">
-                Blood-Link
-              </Heading>
-            </HStack>
-            <Text fontSize="sm" mt={4} color="gray.400">
-              A centralized nationwide network bridging Donors, Blood Banks, and
-              Hospitals to ensure lifesaving supply reaches those in need.
-            </Text>
-          </VStack>
-          <HStack spacing={16} align="start">
-            <VStack align="start" spacing={3}>
-              <Heading size="sm" color="white" mb={2}>
-                Platform
-              </Heading>
-              <ChakraLink fontSize="sm" _hover={{ color: "red.400" }}>
-                Find a Blood Drive
-              </ChakraLink>
-              <ChakraLink fontSize="sm" _hover={{ color: "red.400" }}>
-                Hospital Portal
-              </ChakraLink>
-              <ChakraLink fontSize="sm" _hover={{ color: "red.400" }}>
-                Donor Guidelines
-              </ChakraLink>
-            </VStack>
-            <VStack align="start" spacing={3}>
-              <Heading size="sm" color="white" mb={2}>
-                Support
-              </Heading>
-              <ChakraLink fontSize="sm" _hover={{ color: "red.400" }}>
-                Contact Us
-              </ChakraLink>
-              <ChakraLink fontSize="sm" _hover={{ color: "red.400" }}>
-                FAQs
-              </ChakraLink>
-              <ChakraLink fontSize="sm" _hover={{ color: "red.400" }}>
-                Privacy Policy
-              </ChakraLink>
-            </VStack>
-          </HStack>
-        </Container>
-        <Divider borderColor="gray.700" my={8} />
-        <Container
-          as={Flex}
-          maxW="7xl"
-          direction={{ base: "column", md: "row" }}
-          justify="space-between"
-          align="center"
-        >
-          <Text fontSize="sm">
-            © {new Date().getFullYear()} Blood-Link. All rights reserved.
-          </Text>
-          <HStack spacing={4} mt={{ base: 4, md: 0 }}>
-            <IconButton
-              as="a"
-              href="#"
-              aria-label="Twitter"
-              icon={<FaTwitter />}
-              size="sm"
-              colorScheme="gray"
-              variant="ghost"
-            />
-            <IconButton
-              as="a"
-              href="#"
-              aria-label="Facebook"
-              icon={<FaFacebook />}
-              size="sm"
-              colorScheme="gray"
-              variant="ghost"
-            />
-            <IconButton
-              as="a"
-              href="#"
-              aria-label="Instagram"
-              icon={<FaInstagram />}
-              size="sm"
-              colorScheme="gray"
-              variant="ghost"
-            />
-          </HStack>
-        </Container>
       </Box>
     </Box>
   );

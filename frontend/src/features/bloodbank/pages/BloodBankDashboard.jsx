@@ -32,7 +32,7 @@ import {
   FaCheck,
   FaTimes,
 } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function BloodBankDashboard() {
   const { user, logout } = useAuth();

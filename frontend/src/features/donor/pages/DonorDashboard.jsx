@@ -20,9 +20,9 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { FaHeartbeat, FaCalendarCheck, FaTint } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 
-export default function OrganizationDashboard() {
+export default function DonorDashboard() {
   const { user, logout } = useAuth();
 
   const bg = useColorModeValue("gray.50", "gray.900");
@@ -60,7 +60,11 @@ export default function OrganizationDashboard() {
               </Badge>
             </HStack>
             <Text color={textMuted} mt={1}>
-              Welcome back, {user?.name || "Life Saver"}!
+              Welcome back,{" "}
+              {user?.name?.firstName
+                ? `${user.name.firstName} ${user.name.lastName}`
+                : "Life Saver"}
+              !
             </Text>
           </Box>
           <HStack spacing={3}>

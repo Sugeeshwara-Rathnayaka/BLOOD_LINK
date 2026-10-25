@@ -18,8 +18,8 @@ import {
   IconButton,
 } from "@chakra-ui/react";
 import { FaHeartbeat, FaEye, FaEyeSlash } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
-import api from "../services/api";
+import { useAuth } from "../../../context/AuthContext";
+import api from "../../../services/api";
 
 const dashboardRoutes = {
   SuperAdmin: "/superadmin/dashboard",
