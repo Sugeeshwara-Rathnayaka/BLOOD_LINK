@@ -20,7 +20,7 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { FaBuilding, FaPlus, FaUsers } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function SuperAdminDashboard() {
   const { logout } = useAuth();
