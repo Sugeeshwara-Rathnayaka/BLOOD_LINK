@@ -20,7 +20,7 @@ import {
   useColorModeValue,
 } from "@chakra-ui/react";
 import { FaHeartbeat, FaCalendarCheck, FaTint } from "react-icons/fa";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../../context/AuthContext";
 
 export default function RequesterDashboard() {
   const { user, logout } = useAuth();
