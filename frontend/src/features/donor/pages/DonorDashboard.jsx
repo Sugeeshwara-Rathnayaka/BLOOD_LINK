@@ -31,6 +31,22 @@ export default function DonorDashboard() {
   const textMuted = useColorModeValue("gray.600", "gray.400");
   const tableHoverBg = useColorModeValue("gray.50", "gray.750");
 
+  const upcomingAppointments = [
+    {
+      id: "APT-101",
+      date: "Nov 05, 2026",
+      time: "09:30 AM",
+      location: "Base Hospital, Eppawala",
+      status: "Confirmed",
+    },
+    {
+      id: "APT-102",
+      date: "Nov 12, 2026",
+      time: "10:00 AM",
+      location: "Central Blood Bank",
+      status: "Pending",
+    },
+  ];
   const donations = [
     {
       id: "DON-881",
@@ -127,6 +143,90 @@ export default function DonorDashboard() {
           </Box>
         </SimpleGrid>
 
+        {/* Upcoming Appointments */}
+        <Box
+          bg={cardBg}
+          p={6}
+          borderRadius="xl"
+          borderWidth="1px"
+          borderColor={borderColor}
+        >
+          <Flex
+            justify="space-between"
+            align="center"
+            mb={6}
+            wrap="wrap"
+            gap={3}
+          >
+            <Box>
+              <Heading size="md">Upcoming Appointments</Heading>
+            </Box>
+
+            <Badge colorScheme="blue" px={3} py={1} borderRadius="full">
+              {upcomingAppointments.length} Scheduled
+            </Badge>
+          </Flex>
+
+          {upcomingAppointments.length === 0 ? (
+            <Box textAlign="center" py={8}>
+              <Icon
+                as={FaCalendarCheck}
+                boxSize={10}
+                color={textMuted}
+                mb={3}
+              />
+              <Heading size="sm" mb={2}>
+                No upcoming appointments
+              </Heading>
+              <Text color={textMuted} fontSize="sm">
+                Book an appointment when you're ready to donate blood.
+              </Text>
+            </Box>
+          ) : (
+            <Box overflowX="auto">
+              <Table variant="simple">
+                <Thead>
+                  <Tr>
+                    <Th>Appointment ID</Th>
+                    <Th>Date & Time</Th>
+                    <Th>Blood Bank Hospital</Th>
+                    <Th>Status</Th>
+                  </Tr>
+                </Thead>
+
+                <Tbody>
+                  {upcomingAppointments.map((appointment) => (
+                    <Tr key={appointment.id} _hover={{ bg: tableHoverBg }}>
+                      <Td fontWeight="bold">{appointment.id}</Td>
+
+                      <Td>
+                        <Text fontWeight="medium">{appointment.date}</Text>
+                        <Text fontSize="sm" color={textMuted}>
+                          {appointment.time}
+                        </Text>
+                      </Td>
+
+                      <Td>{appointment.location}</Td>
+
+                      <Td>
+                        <Badge
+                          colorScheme={
+                            appointment.status === "Confirmed"
+                              ? "green"
+                              : "orange"
+                          }
+                        >
+                          {appointment.status}
+                        </Badge>
+                      </Td>
+                    </Tr>
+                  ))}
+                </Tbody>
+              </Table>
+            </Box>
+          )}
+        </Box>
+        {/* Donation History */}
         <Box
           bg={cardBg}
           p={6}
