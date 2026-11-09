@@ -5,23 +5,24 @@ import {
   Text,
   SimpleGrid,
   Icon,
+  Spacer,
   useColorModeValue,
   VStack,
   Button,
 } from "@chakra-ui/react";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import {
   FaHeartbeat,
   FaProcedures,
   FaBuilding,
   FaHospital,
   FaArrowLeft,
+  FaTint,
 } from "react-icons/fa";
+import { ROLES } from "../../../config/roles";
 
 // Accept the 'mode' prop (defaults to "register" to ensure backward compatibility)
 export default function RoleSelection({ mode = "register" }) {
-  const navigate = useNavigate();
-
   // 1. ALL HOOKS EXTRACTED TO THE TOP LEVEL
   const bg = useColorModeValue("gray.50", "gray.900");
   const cardBg = useColorModeValue("white", "gray.800");
@@ -52,10 +53,10 @@ export default function RoleSelection({ mode = "register" }) {
   const bottomLinkText = isLogin ? "Sign up here" : "Sign in here";
   const bottomLinkTarget = isLogin ? "/register" : "/login";
 
-  // 2. ARRAY USES THE PRE-CALCULATED VARIABLES
+  // 3. ARRAY USES THE PRE-CALCULATED VARIABLES
   const roles = [
     {
-      id: "Donor",
+      id: ROLES.DONOR,
       title: "Blood Donor",
       description:
         "Donate whole blood, platelets, or stem cells to save lives in your community.",
@@ -64,7 +65,7 @@ export default function RoleSelection({ mode = "register" }) {
       hoverBg: donorHover,
     },
     {
-      id: "Requester",
+      id: ROLES.REQUESTER,
       title: "Patient / Requester",
       description:
         "Register to request emergency blood packets for yourself or a family member.",
@@ -73,7 +74,7 @@ export default function RoleSelection({ mode = "register" }) {
       hoverBg: requesterHover,
     },
     {
-      id: "Organization",
+      id: ROLES.ORGANIZATION,
       title: "Organization",
       description:
         "Host mobile blood drives and coordinate community donor events with local blood banks.",
@@ -82,7 +83,7 @@ export default function RoleSelection({ mode = "register" }) {
       hoverBg: orgHover,
     },
     {
-      id: "Hospital",
+      id: ROLES.HOSPITAL,
       title: "Hospital",
       description:
         "Broadcast emergency inventory requests and track live fleet dispatch to your wards.",
@@ -92,29 +93,37 @@ export default function RoleSelection({ mode = "register" }) {
     },
   ];
 
-  const handleRoleSelection = (roleId) => {
-    console.log("Selected role:", roleId);
-    // Dynamically route to either /login/:roleId or /register/:roleId
-    navigate(`/${mode}/${roleId}`);
-  };
-
-  // 3. JSX USES THE VARIABLES INSTEAD OF INLINE HOOKS
+  // 4. JSX USES THE VARIABLES INSTEAD OF INLINE HOOKS
   return (
     <Box minH="100vh" bg={bg} py={12} px={[4, 8, 16]}>
       <Flex maxW="5xl" mx="auto" direction="column">
-        <Button
-          as={RouterLink}
-          to="/"
-          variant="ghost"
-          alignSelf="flex-start"
-          leftIcon={<FaArrowLeft />}
-          mb={8}
-          color={textColor}
-          _hover={{ bg: "transparent", color: "red.500" }}
-        >
-          Back to Home
-        </Button>
+        <Flex w="full" align="center" mb={8}>
+          <Button
+            as={RouterLink}
+            to="/"
+            variant="ghost"
+            leftIcon={<FaArrowLeft />}
+            color={textColor}
+            _hover={{ bg: "transparent", color: "red.500" }}
+          >
+            Back to Home
+          </Button>
 
+          <Spacer />
+
+          {isLogin && (
+            <Button
+              as={RouterLink}
+              to={`/login/${ROLES.BLOOD_BANK}`}
+              variant="ghost"
+              leftIcon={<FaTint />}
+              color={textColor}
+              _hover={{ bg: "transparent", color: "purple.500" }}
+            >
+              Blood Bank Staff
+            </Button>
+          )}
+        </Flex>
         <VStack spacing={4} textAlign="center" mb={12}>
           <Heading size="2xl" color={headingColor}>
             {headerTitle}
@@ -128,8 +137,9 @@ export default function RoleSelection({ mode = "register" }) {
           {roles.map((role) => (
             <Box
               key={role.id}
-              as="button"
-              onClick={() => handleRoleSelection(role.id)}
+              as={RouterLink}
+              to={`/${mode}/${role.id}`}
+              display="block"
               w="full"
               textAlign="left"
               p={8}
@@ -144,6 +154,7 @@ export default function RoleSelection({ mode = "register" }) {
                 transform: "translateY(-4px)",
                 boxShadow: "xl",
                 bg: role.hoverBg,
+                textDecoration: "none",
               }}
             >
               <Flex
