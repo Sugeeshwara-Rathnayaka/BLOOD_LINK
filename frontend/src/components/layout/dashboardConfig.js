@@ -5,9 +5,10 @@ import {
   FiDroplet,
   FiHeart,
 } from "react-icons/fi";
+import { ROLES } from "../../config/roles.js";
 
 export const dashboardConfig = {
-  SuperAdmin: {
+  [ROLES.SUPER_ADMIN]: {
     label: "Super Admin",
     color: "red",
     basePath: "/superadmin",
@@ -18,7 +19,7 @@ export const dashboardConfig = {
     ],
   },
 
-  BloodBankAdmin: {
+  [ROLES.BLOOD_BANK]: {
     label: "Blood Bank",
     color: "purple",
     basePath: "/bloodbank",
@@ -33,7 +34,7 @@ export const dashboardConfig = {
     ],
   },
 
-  Hospital: {
+  [ROLES.HOSPITAL]: {
     label: "Hospital",
     color: "teal",
     basePath: "/hospital",
@@ -43,7 +44,7 @@ export const dashboardConfig = {
     ],
   },
 
-  Donor: {
+  [ROLES.DONOR]: {
     label: "Blood Donor",
     color: "green",
     basePath: "/donor",
@@ -53,7 +54,7 @@ export const dashboardConfig = {
     ],
   },
 
-  Organization: {
+  [ROLES.ORGANIZATION]: {
     label: "Organization",
     color: "blue",
     basePath: "/organization",
@@ -63,7 +64,7 @@ export const dashboardConfig = {
     ],
   },
 
-  Requester: {
+  [ROLES.REQUESTER]: {
     label: "Requester",
     color: "orange",
     basePath: "/requester",
@@ -74,10 +75,11 @@ export const dashboardConfig = {
   },
 };
 
-export const getDashboardConfig = (role) =>
-  dashboardConfig[role] || {
-    label: "User",
-    color: "gray",
-    basePath: "",
-    links: [],
-  };
+const fallback = { label: "User", color: "gray", basePath: "", links: [] };
+export const getDashboardConfig = (role) => dashboardConfig[role] ?? fallback;
+
+// Replaces the dashboardRoutes map in ProtectedRoute
+export const getHomePath = (role) => {
+  const { basePath } = getDashboardConfig(role);
+  return basePath ? `${basePath}/dashboard` : "/";
+};
