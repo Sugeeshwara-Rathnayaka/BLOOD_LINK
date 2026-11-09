@@ -8,15 +8,13 @@ import Footer from "./components/layout/Footer.jsx";
 import Home from "./pages/Home.jsx";
 import RoleSelection from "./features/auth/pages/RoleSelection.jsx";
 import LoadingSpinner from "./components/common/LoadingSpinner.jsx";
+import ProtectedRoute from "./components/routing/ProtectedRoute.jsx";
+import PublicOnlyRoute from "./components/routing/PublicOnlyRoute.jsx";
 
 // Lazy-loaded pages
 const Login = lazy(() => import("./features/auth/pages/Login.jsx"));
 const Register = lazy(() => import("./features/auth/pages/Register.jsx"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin.jsx"));
-
-const ProtectedRoute = lazy(
-  () => import("./components/routing/ProtectedRoute.jsx"),
-);
 const DashboardLayout = lazy(
   () => import("./components/layout/DashboardLayout.jsx"),
 );
@@ -40,6 +38,9 @@ const RequesterDashboard = lazy(
 );
 const DonorSettings = lazy(
   () => import("./features/donor/pages/DonorSettings.jsx"),
+);
+const DonorProfile = lazy(
+  () => import("./features/donor/pages/DonorProfile.jsx"),
 );
 const DashboardLoading = ({ children }) => (
   <Suspense
@@ -71,14 +72,22 @@ export default function App() {
         {/* PUBLIC ROUTES: Wrapped in the new PublicLayout */}
         <Route element={<PublicLayout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/login" element={<RoleSelection mode="login" />} />
-          <Route path="/register" element={<RoleSelection mode="register" />} />
-          <Route path="/login/:roleId" element={<Login />} />
-          <Route path="/register/:roleId" element={<Register />} />
+
+          <Route element={<PublicOnlyRoute />}>
+            <Route path="/login" element={<RoleSelection mode="login" />} />
+            <Route
+              path="/register"
+              element={<RoleSelection mode="register" />}
+            />
+            <Route path="/login/:roleId" element={<Login />} />
+            <Route path="/register/:roleId" element={<Register />} />
+          </Route>
         </Route>
 
         {/* Secret Internal Route */}
-        <Route path="/staff-portal-secure" element={<AdminLogin />} />
+        <Route element={<PublicOnlyRoute />}>
+          <Route path="/staff-portal-secure" element={<AdminLogin />} />
+        </Route>
 
         {/* SECURE ROUTES: Protected and wrapped in DashboardLayout (Sidebar only) */}
         <Route element={<ProtectedRoute />}>
@@ -126,6 +135,14 @@ export default function App() {
                 element={
                   <DashboardLoading>
                     <DonorDashboard />
+                  </DashboardLoading>
+                }
+              />
+              <Route
+                path="/donor/profile"
+                element={
+                  <DashboardLoading>
+                    <DonorProfile />
                   </DashboardLoading>
                 }
               />
